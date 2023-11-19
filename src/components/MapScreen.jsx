@@ -81,7 +81,6 @@ function MapScreen({ center, zoom, origin, destination, trucks }) {
           )}
           
           {truckArray && (truckArray.map(truck => {
-            console.log('Truck:', truck);
             return (
               <Marker
                 styles={{ with: 30, height: 30 }}
