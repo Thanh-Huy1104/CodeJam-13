@@ -4,7 +4,7 @@ function WebSocketListener() {
   const [messages, setMessages] = useState([]);
 
   // Replace with your WebSocket server URL
-  const serverUrl = 'wss://4135-2605-8d80-580-be89-902f-aaea-f3bc-d116.ngrok.io';
+  const serverUrl = 'wss://0365-142-117-215-213.ngrok.io';
 
   useEffect(() => {
     const ws = new WebSocket(serverUrl);
@@ -26,10 +26,8 @@ function WebSocketListener() {
       console.log('Disconnected from the WebSocket server');
     };
 
-    // Clean up function to close WebSocket connection
-    return () => {
-      ws.close();
-    };
+    //TODO: Research if we are supposed to close the websocket connection when the component unmounts
+
   }, []);
 
   return (
