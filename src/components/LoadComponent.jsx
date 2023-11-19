@@ -26,36 +26,45 @@ export const LoadComponent = ({ Load, onClick, isSelected }) => {
         return parts.length > 1 ? [parts.slice(0, -2).join(','), parts.slice(-2).join(',')] : [address, ''];
     };
 
-    const getAdress = () => {
-        geocode(RequestType.LATLNG, [Load.originLatitude, Load.originLongitude].join(','))
-        .then(({ results }) => {
-            const [street, city] = formatAddress(results[0].formatted_address);
-            setOriginStreet(street);
-            setOriginCity(city);
-        })
-        .catch(error => {
-            console.error(error);
-            setOriginStreet('Failed to load address');
-            setOriginCity('');
-        });
-
-        geocode(RequestType.LATLNG, [Load.destinationLatitude, Load.destinationLongitude].join(','))
-        .then(({ results }) => {
-            const [street, city] = formatAddress(results[0].formatted_address);
-            setDestinationStreet(street);
-            setDestinationCity(city);
-        })
-        .catch(error => {
-            console.error(error);
-            setDestinationStreet('Failed to load address');
-            setDestinationCity('');
-        });
+    const truncateString = (str, num) => {
+        if (str.length <= num) {
+          return str;
+        }
+        return str.slice(0, num) + '...';
     };
 
-    // Call getAdress on component mount
-    React.useEffect(() => {
-        getAdress();
-    }, []);
+    
+    // const getAdress = () => {
+    //     geocode(RequestType.LATLNG, [Load.originLatitude, Load.originLongitude].join(','))
+    //     .then(({ results }) => {
+    //         const [street, city] = formatAddress(results[0].formatted_address);
+    //         setOriginStreet(truncateString(street, 20));
+    //         setOriginCity(truncateString(city, 20));
+    //       })
+    //     .catch(error => {
+    //         console.error(error);
+    //         setOriginStreet('Failed to load address');
+    //         setOriginCity('');
+    //     });
+
+    //     geocode(RequestType.LATLNG, [Load.destinationLatitude, Load.destinationLongitude].join(','))
+    //     .then(({ results }) => {
+    //         const [street, city] = formatAddress(results[0].formatted_address);
+    //         setDestinationStreet(truncateString(street, 20));
+    //         setDestinationCity(truncateString(city, 20));
+    //       })
+    //     .catch(error => {
+    //         console.error(error);
+    //         setDestinationStreet('Failed to load address');
+    //         setDestinationCity('');
+    //     });
+        
+    // };
+
+    // // Call getAdress on component mount
+    // React.useEffect(() => {
+    //     getAdress();
+    // }, []);
 
     return (
         <div className={`load-component flex-1 w-[250px] h-[250px] p-6 mb-10 bg-white drop-shadow-lg rounded-xl ${isSelected ? 'border-2 border-green-500 shadow-lg shadow-02B528' : ''}`}
@@ -64,12 +73,14 @@ export const LoadComponent = ({ Load, onClick, isSelected }) => {
                 <div> 
                     <div className='text-[14px] text-gray-400'>Load ID</div>
                     <div className='text-[14px] font-medium'>LOAD-{Load.loadId}</div>
+                    <div className='text-[14px] text-green-500'>Payout: <span className='text-yellow-600'>{Load.price} CAD</span></div>
+                    <div className='text-[12px] text-purple-500'>{Load.mileage} miles</div>
                 </div>
                 <div>
                     <img src={BoxImg} className='w-16 h-16' alt="box" />
                 </div>
             </div>
-            <div className='text-[12px] text-gray-400 mb-2'>ORIGIN</div>
+            <div className='text-[12px] text-gray-400 mt-4'>ORIGIN</div>
             <div className='flex'>
                 <div className='flex items-center'>
                     <img src={GreenDot} className='w-6 h-6 mr-4 ' alt="green-dot" />

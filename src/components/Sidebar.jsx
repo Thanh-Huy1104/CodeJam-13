@@ -17,11 +17,13 @@ const Sidebar = ({ onLoadSelect, onTruckSelect, loads, trucks }) => {
     const handleTruckClick = (truck_id) => {
         const selectedTruck = trucks.find(truck => truck.truckId.toString() === truck_id.id);
         onTruckSelect(selectedTruck); // Use the passed handler to set selected truck in App
+        setSearchQuery("");
     };
     
 
     const handleSearchChange = (event) => {
         setSearchQuery(event.target.value);
+        console.log(searchQuery)
     };
 
     // Filter trucks based on the search query and limit to 3
@@ -45,14 +47,17 @@ const Sidebar = ({ onLoadSelect, onTruckSelect, loads, trucks }) => {
                     onSearch={handleSearchChange}
                     onSelect={handleTruckClick}
                     autoFocus
+                    value={searchQuery}
+                    onTruckSelect={handleTruckClick}
+                    clearOnSelect = {true}
                     placeholder='Search for a truck...'
-                ><text>id</text></ReactSearchAutocomplete>
+                />
                 </div>
                 <FontAwesomeIcon className='ml-2 text-gray-400 ' icon={faSliders} />
             </div>
 
             <div className="flex">
-                <div className="mt-2 ml-12 font-bold">Available Loads</div>
+                <div className="mt-4 ml-12 font-medium">All Loads</div>
             </div>
             <div className="max-h-[650px] ml-10 pl-2 pt-2 overflow-y-auto">
                 {loads.map(load => (

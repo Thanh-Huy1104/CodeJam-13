@@ -1,7 +1,9 @@
 import  MapScreen from "./MapScreen";
 import Sidebar from "./Sidebar";
-import WebSocketListener from "./WebSocketListener";
+import SelectedMapScreen from "./SelectedMapScreen";
+
 
 export default MapScreen
 export { Sidebar }
-export { WebSocketListener }
+export { SelectedMapScreen }
+

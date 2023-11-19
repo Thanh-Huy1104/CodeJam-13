@@ -1,124 +1,99 @@
 import { useState, useEffect } from 'react'
-import MapScreen, { Sidebar, WebSocketListener } from './components'
+import MapScreen, { Sidebar, SelectedMapScreen } from './components'
 import './App.css'
 import Lottie from 'lottie-react';
 import animationData from './assets/truck-anim.json';
 
-const Load1 = {
-  "seq": 3,
-  "type": "Load",
-  "timestamp": "2023-11-17T11:31:35.0481646-05:00",
-  "loadId": 101,
-  "originLatitude": 39.531354,
-  "originLongitude": -87.440632,
-  "destinationLatitude": 37.639,
-  "destinationLongitude": -121.0052,
-  "equipmentType": "Van",
-  "price": 3150.0,
-  "mileage": 2166.0
-}
-const Load2 = {
-  "seq": 4,
-  "type": "Load",
-  "timestamp": "2023-11-17T11:55:11.2311956-05:00",
-  "loadId": 201,
-  "originLatitude": 41.621465,
-  "originLongitude": -83.605482,
-  "destinationLatitude": 37.639,
-  "destinationLongitude": -121.0052,
-  "equipmentType": "Van",
-  "price": 3300.0,
-  "mileage": 2334.0
-}
-const Load3 = {
-  "seq": 3,
-  "type": "Load",
-  "timestamp": "2023-11-17T11:31:35.0481646-05:00",
-  "loadId": 102,
-  "originLatitude": 39.531354,
-  "originLongitude": -87.440632,
-  "destinationLatitude": 37.639,
-  "destinationLongitude": -121.0052,
-  "equipmentType": "Van",
-  "price": 3150.0,
-  "mileage": 2166.0
-}
 
-const trucks = [
-  {
-    "seq": 5,
-    "type": "Truck",
-    "timestamp": "2023-11-17T16:40:32.7200171-05:00",
-    "truckId": 114,
-    "positionLatitude": 40.32124710083008,
-    "positionLongitude": -86.74946594238281,
-    "equipType": "Van",
-    "nextTripLengthPreference": "Long"
-  },
-  {
-    "seq": 2,
-    "type": "Truck",
-    "timestamp": "2023-11-17T09:10:23.2531001-05:00",
-    "truckId": 346,
-    "positionLatitude": 39.195726,
-    "positionLongitude": -84.665296,
-    "equipType": "Van",
-    "nextTripLengthPreference": "Long"
-  },
-  {
-    "seq": 2,
-    "type": "Truck",
-    "timestamp": "2023-11-17T09:10:23.2531001-05:00",
-    "truckId": 355,
-    "positionLatitude": 39.195726,
-    "positionLongitude": -84.665296,
-    "equipType": "Van",
-    "nextTripLengthPreference": "Long"
-  },
-  {
-    "seq": 2,
-    "type": "Truck",
-    "timestamp": "2023-11-17T09:10:23.2531001-05:00",
-    "truckId": 223,
-    "positionLatitude": 39.195726,
-    "positionLongitude": -84.665296,
-    "equipType": "Van",
-    "nextTripLengthPreference": "Long"
-  },
-];
-
-// Define the initial state for selectedLoad and selectedTruck
 const initialSelectedTruck = null;
 
 function App() {
-  const [mapCenter, setMapCenter] = useState({ lat: -3.745, lng: -38.523 });
-  const [mapZoom, setMapZoom] = useState(10);
-  const [selectedLoad, setSelectedLoad] = useState(Load1);
+  const [mapCenter, setMapCenter] = useState({ lat: 37.0902 , lng: -95.7129 });
+  const [mapZoom, setMapZoom] = useState(3);
   const [selectedTruck, setSelectedTruck] = useState(initialSelectedTruck);
   const [loading, setLoading] = useState(true);
+  const [loads, setLoads] = useState([]);
+  const [trucks, setTrucks] = useState([]);
+
+  const serverUrl = 'ws://localhost:8765';
+  const [selectedLoad, setSelectedLoad] = useState(null);
+
+  useEffect(() => {
+    const ws = new WebSocket(serverUrl);
+
+    ws.onopen = () => {
+      console.log('Connected to WebSocket server');
+    };
+    
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+    
+      if (message.type === 'Load') {
+        setLoads(prevLoads => {
+          // Check if the load already exists in the array
+          const existingLoadIndex = prevLoads.findIndex(load => load.loadId === message.loadId);
+          if (existingLoadIndex >= 0) {
+            // Update the existing load object
+            return prevLoads.map((load, index) => {
+              if (index === existingLoadIndex) {
+                return { ...load, ...message };
+              }
+              return load;
+            });
+          } else {
+            // Add the new load object
+            return [...prevLoads, message];
+          }
+        });
+      } else if (message.type === 'Truck') {
+        // Existing truck logic...
+        setTrucks(prevTrucks => {
+          const existingTruckIndex = prevTrucks.findIndex(truck => truck.truckId === message.truckId);
+          if (existingTruckIndex >= 0) {
+            return prevTrucks.map((truck, index) => {
+              if (index === existingTruckIndex) {
+                return { ...truck, ...message };
+              }
+              return truck;
+            });
+          } else {
+            return [...prevTrucks, message];
+          }
+        });
+      }
+    };
+    
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from WebSocket server');
+    };
+    
+  }, []);
 
   const handleTruckSelect = (truck) => {
     setSelectedTruck(truck);
     console.log('Truck selected:', selectedTruck);
     setSelectedLoad(null); // Deselect the selected load
     setMapCenter({ lat: truck.positionLatitude, lng: truck.positionLongitude });
-    setMapZoom(15); // Adjust the zoom level as needed
+    setMapZoom(7);
   };
   
-
   const handleLoadSelect = (Load) => {
     console.log('Load selected:', Load);
     setSelectedLoad(Load);
     setSelectedTruck(initialSelectedTruck); // Deselect the selected truck
     setMapCenter({ lat: Load.originLatitude, lng: Load.originLongitude });
-    setMapZoom(1000); // Adjust the zoom level as needed
   };
 
   useEffect(() => {
     // Simulate loading (e.g., fetch data here)
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000); // Adjust time as needed
+    }, 1500); // Adjust time as needed
 
     return () => clearTimeout(timer);
   }, []);
@@ -146,23 +121,27 @@ function App() {
 
   return (
     <div>
-      <Sidebar onLoadSelect={handleLoadSelect} onTruckSelect={handleTruckSelect} loads={[Load1, Load2, Load3]} trucks={trucks} />
+      <Sidebar onLoadSelect={handleLoadSelect} onTruckSelect={handleTruckSelect} loads={loads} trucks={trucks} />
       {(selectedLoad || selectedTruck === null) && (
         <MapScreen
-          center={mapCenter}
-          zoom={mapZoom}
-          origin={{ lat: selectedLoad ? selectedLoad.originLatitude : trucks[0].positionLatitude, lng: selectedLoad ? selectedLoad.originLongitude : trucks[0].positionLongitude }}
-          destination={{ lat: selectedLoad ? selectedLoad.destinationLatitude : trucks[0].positionLatitude, lng: selectedLoad ? selectedLoad.destinationLongitude : trucks[0].positionLongitude }}
-          trucks={trucks} // Pass all trucks
-        />
+        center={mapCenter}
+        zoom={mapZoom}
+        origin={{
+          lat: selectedLoad ? selectedLoad.originLatitude : (selectedTruck ? selectedTruck.positionLatitude : 0),
+          lng: selectedLoad ? selectedLoad.originLongitude : (selectedTruck ? selectedTruck.positionLongitude : 0)
+        }}
+        destination={{
+          lat: selectedLoad ? selectedLoad.destinationLatitude : (selectedTruck ? selectedTruck.positionLatitude : 0),
+          lng: selectedLoad ? selectedLoad.destinationLongitude : (selectedTruck ? selectedTruck.positionLongitude : 0)
+        }}
+        trucks={trucks}
+      />
       )}
       {selectedTruck !== null && (
-        <MapScreen
+        <SelectedMapScreen
           center={{ lat: selectedTruck.positionLatitude, lng: selectedTruck.positionLongitude }}
-          zoom={mapZoom} // Adjust the zoom level as needed
-          origin={{ lat: selectedTruck.positionLatitude, lng: selectedTruck.positionLongitude }}
-          destination={{ lat: selectedTruck.positionLatitude, lng: selectedTruck.positionLongitude }}
-          trucks={[selectedTruck]} // Render only the selected truck
+          zoom={mapZoom}
+          truck={[selectedTruck]} // Render only the selected truck
         />
       )}
     </div>

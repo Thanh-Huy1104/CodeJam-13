@@ -9,31 +9,15 @@ const mapOptions = {
   styles: MapStyles
 };
 
-function MapScreen({ center, zoom, origin, destination, trucks }) {
-  const [directions, setDirections] = useState(null);
+function SelectedMapScreen({ center, zoom, truck }) {
   const [isMapsLoaded, setIsMapsLoaded] = useState(false);
   const [truckArray, setTruckArray] = useState([]);
 
   useEffect(() => {
     if (isMapsLoaded) {
-      const directionsService = new window.google.maps.DirectionsService();
-      directionsService.route(
-        {
-          origin: new window.google.maps.LatLng(origin.lat, origin.lng),
-          destination: new window.google.maps.LatLng(destination.lat, destination.lng),
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-          } else {
-            console.error(`error fetching directions ${result}`);
-          }
-        }
-      );
-      setTruckArray(trucks);
+      setTruckArray(truck);
     }
-  }, [origin, destination, isMapsLoaded, trucks]);
+  }, [isMapsLoaded, truck]);
 
   const handleLoad = () => {
     setIsMapsLoaded(true);
@@ -48,29 +32,9 @@ function MapScreen({ center, zoom, origin, destination, trucks }) {
         <GoogleMap
           mapContainerStyle={{ width: '100%', height: '100%' }}
           center={center}
-          zoom={4}
+          zoom={12}
           options={mapOptions}
         >
-
-          {directions && (
-            <DirectionsRenderer
-              directions={directions}
-              options={{
-                zoom: 12,
-                polylineOptions: {
-                  strokeColor: '#02B528',
-                  strokeOpacity: 0.4,
-                  strokeWeight: 5,
-                },
-                markerOptions: {
-                  icon: {
-                    url: markerIcon,
-                    scaledSize: new window.google.maps.Size(40, 40),
-                  },
-                },
-              }}
-            />
-          )}
           
           {truckArray && (truckArray.map(truck => {
             return (
@@ -95,4 +59,4 @@ function MapScreen({ center, zoom, origin, destination, trucks }) {
   );
 }
 
-export default MapScreen;
+export default SelectedMapScreen;
